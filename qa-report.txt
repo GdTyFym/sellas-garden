@@ -1,0 +1,93 @@
+BirthdaySurprise QA Report
+
+Build & Tooling Status
+- Clean install: rm -rf node_modules .next; npm ci (warnings about deprecated packages; no vulnerabilities)
+- npm run lint: initially failed on unused const, ref cleanup lint, and test img lint; fixed in app/page.tsx and tests/home.test.tsx; now passes
+- npm test: passes (vitest)
+- npm run build: initially failed on CSSProperties.rotate typing and a perfTier comparison; fixed in app/page.tsx; now succeeds
+
+Patch
+diff --git a/app/page.tsx b/app/page.tsx
+@@
+ const recipientName = 'Sella';
+ const senderName = 'Arya';
+ const giftDate = '14 Januari';
+ const giftYear = '2026';
+-const recipientInitial = recipientName.slice(0, 1).toUpperCase();
+@@
+   const showFinaleMotion = !reducedMotion && perfTier !== 'low' && allowHighMotion;
+   const showFinaleGlints = !reducedMotion;
+   const showFinaleRibbons = showFinaleMotion && perfTier === 'high' && allowHighMotion;
+-  const showFinaleVeil = showFinaleMotion && perfTier !== 'low' && allowHighMotion;
++  const showFinaleVeil = showFinaleMotion;
+@@
+                 '--x': `${star.x}%`,
+                 '--y': `${star.y}%`,
+                 '--length': `${star.length}px`,
+-                rotate: star.angle
++                rotate: `${star.angle}deg`
+               } as React.CSSProperties
+             }
+@@
+-  useEffect(() => {
+-    return () => {
++  useEffect(() => {
++    const bgm = bgmRef.current;
++    const voice = voiceRef.current;
++    return () => {
+@@
+-      if (bgmRef.current) {
+-        bgmRef.current.pause();
+-      }
+-      if (voiceRef.current) {
+-        voiceRef.current.pause();
+-      }
++      if (bgm) {
++        bgm.pause();
++      }
++      if (voice) {
++        voice.pause();
++      }
+     };
+   }, []);
+diff --git a/tests/home.test.tsx b/tests/home.test.tsx
+@@
+ vi.mock('next/image', () => ({
+-  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => <img {...props} />
++  default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
++    const { alt = '', ...rest } = props;
++    return (
++      // eslint-disable-next-line @next/next/no-img-element
++      <img alt={alt} {...rest} />
++    );
++  }
+ }));
+
+Why this is correct
+- Removes a truly unused constant without changing behavior.
+- Captures audio refs inside the cleanup effect to satisfy hook linting and use stable references.
+- Uses a deg-suffixed string for rotate to satisfy CSSProperties typing.
+- Simplifies showFinaleVeil to match already gated showFinaleMotion.
+- Ensures test img mock always has alt and avoids no-img-element lint in tests.
+
+Issues Found
+| Severity | Area | Steps to reproduce | Expected vs Actual | Suspected root cause | Suggested fix |
+| --- | --- | --- | --- | --- | --- |
+| High | Functional/Cross-browser | iOS Safari: enter garden and double-tap quickly in the garden | Expected: double-tap triggers special effect without browser zoom; Actual: Safari zooms/scrolls and effect is inconsistent | Missing touch-action on main interaction surface app/page.tsx:1886 | Add touch-action: manipulation (Tailwind touch-manipulation or touch-none) on the main container |
+| Medium | Cross-browser | iOS 13 Safari: load page and change pointer conditions (rotate device) | Expected: coarse pointer state updates; Actual: addEventListener error and coarsePointer stays stale | MediaQueryList.addEventListener used without fallback app/page.tsx:1007 | Use addEventListener when available, else addListener/removeListener |
+| Medium | UX/Perf | Plant until garden is full | Expected: non-blocking in-app feedback; Actual: blocking native alert interrupts flow/audio | window.alert in app/page.tsx:1751 | Replace with a small toast/banner state |
+| Medium | A11y | Inspect document language or use a screen reader | Expected: Indonesian language; Actual: lang="en" | app/layout.tsx:34 | Set lang="id" or lang="id-ID" |
+| Medium | A11y | After finale, navigate to voice control with a screen reader | Expected: labeled play/pause control; Actual: unlabeled button | Missing accessible name app/page.tsx:2884 | Add aria-label/aria-labelledby or visible text inside the button |
+| Low | A11y | Plant many flowers and use a screen reader | Expected: decorative blooms are skipped; Actual: repeated "Blooming flower" announcements | Decorative image alt in components/Flower.tsx:48 | Use alt="" and aria-hidden/role="presentation" |
+| Low (Ambiguity) | UX | On intro screen, tap background instead of button | Expected: unclear (copy says "Sentuh..."); Actual: only "Masuk" works | Copy at app/page.tsx:1434 vs entry only on app/page.tsx:1442 | Either wire background tap to enter, or update copy to "Tekan tombol Masuk" |
+
+Quick Wins (High ROI)
+- Add touch-action: manipulation on the main garden surface to prevent mobile double-tap zoom.
+- Add matchMedia addListener fallback for Safari compatibility.
+- Replace the blocking window.alert with an inline toast/banner.
+- Add an accessible label for the voice button and set the correct document language.
+
+Optional Enhancements (Nice-to-have)
+- Defer non-critical audio (voice, sfx, finale) by changing preload="auto" to "metadata" or lazy-loading after user entry.
+- Add onPointerCancel to clear hold timers and pointer state during system gestures.
+- Convert large flower PNGs to WebP/AVIF to reduce initial bandwidth and memory pressure.
