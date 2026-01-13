@@ -1,4 +1,4 @@
-export const recipientName = 'Sella Sayang';
+export const recipientName = 'Cutie';
 export const senderName = 'Fym';
 export const giftDate = '14 Januari';
 export const giftYear = '2026';
