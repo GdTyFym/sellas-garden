@@ -280,7 +280,7 @@ const baseAudioSources = {
   sparkle: '/audio/sparkle.mp3',
   paper: '/audio/paper.mp3',
   finale: '/audio/finale.mp3',
-  voice: '/audio/voice.mp3?v=2'
+  voice: '/audio/voice-v2.mp3'
 } as const;
 const BGM_BASE_VOLUME = 0.45;
 const BGM_DUCK_VOLUME = BGM_BASE_VOLUME * 0.2;
