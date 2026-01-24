@@ -17,15 +17,32 @@ const mockContext = {
   setTransform: vi.fn(),
   clearRect: vi.fn(),
   drawImage: vi.fn(),
+  createLinearGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
+  createRadialGradient: vi.fn(() => ({ addColorStop: vi.fn() })),
   beginPath: vi.fn(),
   moveTo: vi.fn(),
   lineTo: vi.fn(),
+  bezierCurveTo: vi.fn(),
+  quadraticCurveTo: vi.fn(),
+  arc: vi.fn(),
+  closePath: vi.fn(),
   stroke: vi.fn(),
+  fillRect: vi.fn(),
+  fill: vi.fn(),
+  save: vi.fn(),
+  restore: vi.fn(),
+  translate: vi.fn(),
+  scale: vi.fn(),
+  rotate: vi.fn(),
+  setLineDash: vi.fn(),
   lineCap: 'round',
   lineJoin: 'round',
+  lineDashOffset: 0,
   globalCompositeOperation: 'source-over',
+  globalAlpha: 1,
   lineWidth: 1,
   strokeStyle: '#fff',
+  fillStyle: '#000',
   imageSmoothingEnabled: true,
   imageSmoothingQuality: 'high'
 } as unknown as CanvasRenderingContext2D;
@@ -57,7 +74,9 @@ describe('GardenCanvasOverlay', () => {
     fireEvent.click(screen.getByRole('button', { name: 'Tutup' }));
 
     const stored = window.localStorage.getItem('garden_canvas_v1');
-    expect(stored).toMatch(/^data:image\/webp/);
+    expect(stored).toBeTruthy();
+    const payload = JSON.parse(stored ?? '{}') as { drawing?: string };
+    expect(payload.drawing).toMatch(/^data:image\/webp/);
   });
 
   it('shows a friendly message when storage is full', () => {

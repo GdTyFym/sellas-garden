@@ -71,7 +71,6 @@ type IntroGateProps = {
   showIntroBloomDetail: boolean;
   perfTier: 'low' | 'mid' | 'high';
   introCardContent: ReactNode;
-  onEnterGarden: (event?: { clientX: number; clientY: number }) => void;
 };
 
 export default function IntroGate({
@@ -92,8 +91,7 @@ export default function IntroGate({
   showIntroOuterRing,
   showIntroBloomDetail,
   perfTier,
-  introCardContent,
-  onEnterGarden
+  introCardContent
 }: IntroGateProps) {
   return (
     <>

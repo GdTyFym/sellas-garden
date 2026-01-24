@@ -314,16 +314,18 @@ export function useGardenAudio({
   }, [clearBgmFade, cleanupSfxNode, isMuted]);
 
   useEffect(() => {
+    const bgm = bgmRef.current;
+    const voice = voiceRef.current;
     return () => {
       if (bgmFadeRef.current) {
         window.clearInterval(bgmFadeRef.current);
         bgmFadeRef.current = null;
       }
-      if (bgmRef.current) {
-        bgmRef.current.pause();
+      if (bgm) {
+        bgm.pause();
       }
-      if (voiceRef.current) {
-        voiceRef.current.pause();
+      if (voice) {
+        voice.pause();
       }
     };
   }, []);

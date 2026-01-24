@@ -2,7 +2,7 @@ import { expect, test } from '@playwright/test';
 import type { Page } from '@playwright/test';
 
 const completePreIntroGate = async (page: Page) => {
-  await page.goto('/');
+  await page.goto('/garden');
   await page.getByPlaceholder(/Tulis namamu/i).fill('Sella');
   await page.getByRole('button', { name: 'Lanjut' }).click();
 
@@ -84,10 +84,10 @@ const plantBloomsUntil = async (page: Page, target: number) => {
 };
 
 test('robots headers and meta tags are present', async ({ page }) => {
-  const response = await page.request.get('/');
+  const response = await page.request.get('/garden');
   expect(response.headers()['x-robots-tag']).toBe('noindex, nofollow, noimageindex');
 
-  await page.goto('/');
+  await page.goto('/garden');
   const robotsMeta = page.locator('meta[name="robots"]');
   await expect(robotsMeta).toHaveAttribute('content', /noindex/i);
   const googlebotMeta = page.locator('meta[name="googlebot"]');

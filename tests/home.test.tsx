@@ -2,7 +2,7 @@ import React from 'react';
 import { render, screen } from '@testing-library/react';
 import userEvent from '@testing-library/user-event';
 import { vi } from 'vitest';
-import Home from '@/app/page';
+import Garden from '@/app/garden/page';
 
 vi.mock('next/image', () => ({
   default: (props: React.ImgHTMLAttributes<HTMLImageElement>) => {
@@ -28,14 +28,14 @@ vi.mock('next/navigation', () => ({
   })
 }));
 
-describe('Home', () => {
+describe('Garden', () => {
   beforeEach(() => {
     localStorage.clear();
     sessionStorage.clear();
   });
 
   it('renders the hero headline and tagline', () => {
-    render(<Home />);
+    render(<Garden />);
     expect(screen.getByText(/Sebuah doa yang/i)).toBeInTheDocument();
     expect(screen.getByText(/tumbuh/i)).toBeInTheDocument();
     expect(screen.getByText(/Selamat ulang tahun/i)).toBeInTheDocument();
@@ -43,14 +43,14 @@ describe('Home', () => {
 
   it('shows the pre-intro gate entry control', async () => {
     const user = userEvent.setup();
-    render(<Home />);
+    render(<Garden />);
     await user.click(screen.getByRole('button', { name: /mulai/i }));
     expect(await screen.findByPlaceholderText(/tulis namamu/i)).toBeInTheDocument();
     expect(screen.getByRole('button', { name: /lanjut/i })).toBeInTheDocument();
   });
 
   it('shows the blooms counter label', () => {
-    render(<Home />);
+    render(<Garden />);
     expect(screen.getByText(/blooms/i)).toBeInTheDocument();
   });
 });
